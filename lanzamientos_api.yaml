@@ -80,6 +80,12 @@ x-ibm-configuration:
                 \ launch);\n\nif (serviceResponse.status === 1 || serviceResponse.status\
                 \ === 3) {\n    apim.setvariable('comprobarTiempo', true);\n}\n\n\
                 apim.setvariable('message.body', launch);\n"
+          - if:
+              title: "Comprobar tiempo"
+              condition: "apim.getvariable('comprobarTiempo');"
+              execute: []
+              version: "1.0.0"
+              description: "Comprobar el tiempo en Marte si el lanzamiento sigue adelante"
         otherwise: []
         version: "1.0.0"
     catch: []
