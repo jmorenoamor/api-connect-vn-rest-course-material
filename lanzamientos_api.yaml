@@ -101,9 +101,42 @@ x-ibm-configuration:
                     \nlet launch = apim.getvariable('launch');\n\nlet max = weatherResponse[weatherResponse.sol_keys[0]].AT.mx;\n\
                     let min = weatherResponse[weatherResponse.sol_keys[0]].AT.mn;\n\
                     \nlaunch.temperatura_en_marte = {\n    max: max,\n    min: min,\n\
-                    };\n\napim.setvariable('message.body', launch);\n"
+                    };\n\napim.setvariable('message.body', launch);\napim.output('application/json');\n"
               version: "1.0.0"
               description: "Comprobar el tiempo en Marte si el lanzamiento sigue adelante"
+        - operations:
+          - "BuscarLanzaiento"
+          execute:
+          - gatewayscript:
+              title: "Procesar entrada"
+              version: "1.0.0"
+              source: "let inputBody = apim.getvariable('request.body');\n\nif (!inputBody\
+                \ || !inputBody.nombre) {\n    apim.error('BadRequest', 400, 'Internal\
+                \ Error', 'El campo nombre es obligatorio');\n}\n\napim.setvariable('nombre',\
+                \ inputBody.nombre);\n"
+          - invoke:
+              title: "Buscar"
+              timeout: 60
+              verb: "GET"
+              cache-response: "protocol"
+              cache-ttl: 900
+              stop-on-error:
+              - null
+              version: "1.0.0"
+              target-url: "https://api.eu-gb.apiconnect.appdomain.cloud/gjlpbgmsizabnuuhxrawdrtcom-dev/sb/curso/buscar?nombre=$(nombre)"
+          - gatewayscript:
+              title: "Procesar"
+              version: "1.0.0"
+              source: "let serviceResponse = apim.getvariable('message.body');\n\n\
+                let response = [];\n\nserviceResponse.forEach(l => {\n    let launch\
+                \ = {\n        nombre: l.name,\n        ventana: l.windowstart,\n\
+                \    };\n\n    switch (l.status) {\n        case 1:\n            launch.estado\
+                \ = \"ok\";\n            break;\n        case 2:\n            launch.estado\
+                \ = \"ko\";\n            break;\n        case 3:\n            launch.estado\
+                \ = \"realizado\";\n            break;\n        case 4:\n        \
+                \    launch.estado = \"fallido\";\n            break;\n    }\n\n \
+                \   response.push(launch);\n});\n\napim.setvariable('message.body',\
+                \ response);\napim.output('application/json');\n"
         otherwise: []
         version: "1.0.0"
     catch: []
@@ -126,5 +159,11 @@ paths:
       type: "string"
       required: true
       in: "path"
+  /buscar:
+    post:
+      responses:
+        200:
+          description: "200 OK"
+      operationId: "BuscarLanzaiento"
 definitions: {}
 tags: []
