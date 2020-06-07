@@ -94,6 +94,14 @@ x-ibm-configuration:
                   - null
                   version: "1.0.0"
                   target-url: "https://api.eu-gb.apiconnect.appdomain.cloud/gjlpbgmsizabnuuhxrawdrtcom-dev/sb/curso/weather"
+              - gatewayscript:
+                  title: "Procesar"
+                  version: "1.0.0"
+                  source: "let weatherResponse = apim.getvariable('message.body');\n\
+                    \nlet launch = apim.getvariable('launch');\n\nlet max = weatherResponse[weatherResponse.sol_keys[0]].AT.mx;\n\
+                    let min = weatherResponse[weatherResponse.sol_keys[0]].AT.mn;\n\
+                    \nlaunch.temperatura_en_marte = {\n    max: max,\n    min: min,\n\
+                    };\n\napim.setvariable('message.body', launch);\n"
               version: "1.0.0"
               description: "Comprobar el tiempo en Marte si el lanzamiento sigue adelante"
         otherwise: []
