@@ -83,7 +83,17 @@ x-ibm-configuration:
           - if:
               title: "Comprobar tiempo"
               condition: "apim.getvariable('comprobarTiempo');"
-              execute: []
+              execute:
+              - invoke:
+                  title: "Obtener tiempo"
+                  timeout: 60
+                  verb: "GET"
+                  cache-response: "protocol"
+                  cache-ttl: 900
+                  stop-on-error:
+                  - null
+                  version: "1.0.0"
+                  target-url: "https://api.eu-gb.apiconnect.appdomain.cloud/gjlpbgmsizabnuuhxrawdrtcom-dev/sb/curso/weather"
               version: "1.0.0"
               description: "Comprobar el tiempo en Marte si el lanzamiento sigue adelante"
         otherwise: []
