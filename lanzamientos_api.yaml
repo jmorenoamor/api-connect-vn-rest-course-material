@@ -76,8 +76,10 @@ x-ibm-configuration:
                 if (!serviceResponse.id) {\n    apim.error('Not Found', 404, 'Not\
                 \ Found', 'Lanzamiento no encontrado');\n}\n\nlet launch = {\n   \
                 \ nombre: serviceResponse.name,\n    ventana: serviceResponse.windowstart,\n\
-                \    estado: serviceResponse.status,\n};\n\napim.setvariable('message.body',\
-                \ launch);\n"
+                \    estado: serviceResponse.status,\n};\n\napim.setvariable('launch',\
+                \ launch);\n\nif (serviceResponse.status === 1 || serviceResponse.status\
+                \ === 3) {\n    apim.setvariable('comprobarTiempo', true);\n}\n\n\
+                apim.setvariable('message.body', launch);\n"
         otherwise: []
         version: "1.0.0"
     catch: []
