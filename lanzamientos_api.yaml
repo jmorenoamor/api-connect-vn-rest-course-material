@@ -26,29 +26,60 @@ x-ibm-configuration:
     enabled: true
   assembly:
     execute:
-    - invoke:
-        title: "Obtener lanzamientos"
-        timeout: 60
-        verb: "GET"
-        cache-response: "protocol"
-        cache-ttl: 900
-        stop-on-error:
-        - null
+    - operation-switch:
+        title: "Seleccionar operacion"
+        case:
+        - operations:
+          - "ObtenerLanzamientos"
+          execute:
+          - invoke:
+              title: "Obtener lanzamientos"
+              timeout: 60
+              verb: "GET"
+              cache-response: "protocol"
+              cache-ttl: 900
+              stop-on-error:
+              - null
+              version: "1.0.0"
+              target-url: "https://api.eu-gb.apiconnect.appdomain.cloud/gjlpbgmsizabnuuhxrawdrtcom-dev/sb/curso/launches"
+              secure-gateway: false
+          - gatewayscript:
+              title: "Procesar"
+              version: "1.0.0"
+              source: "let serviceResponse = apim.getvariable('message.body');\n\n\
+                let response = [];\n\nserviceResponse.launches.forEach(l => {\n  \
+                \ let launch = {\n     id: l.id,\n     nombre: l.name,\n     ventana:\
+                \ l.windowstart\n   };\n   \n   switch (l.status) {\n       case 1:\n\
+                \           launch.estado = \"ok\";\n           break;\n       case\
+                \ 2:\n           launch.estado = \"ko\";\n           break;\n    \
+                \   case 3:\n           launch.estado = \"realizado\";\n         \
+                \  break;\n       case 4:\n           launch.estado = \"fallido\"\
+                ;\n           break;\n   }\n   \n   response.push(launch);\n});\n\n\
+                apim.setvariable('message.body', response);\napim.output('application/json');\n"
+        - operations:
+          - "ObtenerUnLanzamiento"
+          execute:
+          - invoke:
+              title: "Obtener lanzamiento"
+              timeout: 60
+              verb: "GET"
+              cache-response: "protocol"
+              cache-ttl: 900
+              stop-on-error:
+              - null
+              version: "1.0.0"
+              target-url: "https://api.eu-gb.apiconnect.appdomain.cloud/gjlpbgmsizabnuuhxrawdrtcom-dev/sb/curso/launches/$(request.parameters.id)"
+          - gatewayscript:
+              title: "Procesar"
+              version: "1.0.0"
+              source: "let serviceResponse = apim.getvariable('message.body');\n\n\
+                if (!serviceResponse.id) {\n    apim.error('Not Found', 404, 'Not\
+                \ Found', 'Lanzamiento no encontrado');\n}\n\nlet launch = {\n   \
+                \ nombre: serviceResponse.name,\n    ventana: serviceResponse.windowstart,\n\
+                \    estado: serviceResponse.status,\n};\n\napim.setvariable('message.body',\
+                \ launch);\n"
+        otherwise: []
         version: "1.0.0"
-        target-url: "https://api.eu-gb.apiconnect.appdomain.cloud/gjlpbgmsizabnuuhxrawdrtcom-dev/sb/curso/launches"
-        secure-gateway: false
-    - gatewayscript:
-        title: "Procesar"
-        version: "1.0.0"
-        source: "let serviceResponse = apim.getvariable('message.body');\n\nlet response\
-          \ = [];\n\nserviceResponse.launches.forEach(l => {\n   let launch = {\n\
-          \     id: l.id,\n     nombre: l.name,\n     ventana: l.windowstart\n   };\n\
-          \   \n   switch (l.status) {\n       case 1:\n           launch.estado =\
-          \ \"ok\";\n           break;\n       case 2:\n           launch.estado =\
-          \ \"ko\";\n           break;\n       case 3:\n           launch.estado =\
-          \ \"realizado\";\n           break;\n       case 4:\n           launch.estado\
-          \ = \"fallido\";\n           break;\n   }\n   \n   response.push(launch);\n\
-          });\n\napim.setvariable('message.body', response);\napim.output('application/json');\n"
     catch: []
   phase: "realized"
 paths:
@@ -58,5 +89,16 @@ paths:
         200:
           description: "200 OK"
       operationId: "ObtenerLanzamientos"
+  /{id}:
+    get:
+      responses:
+        200:
+          description: "200 OK"
+      operationId: "ObtenerUnLanzamiento"
+    parameters:
+    - name: "id"
+      type: "string"
+      required: true
+      in: "path"
 definitions: {}
 tags: []
