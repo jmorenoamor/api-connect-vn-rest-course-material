@@ -73,9 +73,9 @@ x-ibm-configuration:
               title: "Procesar"
               version: "1.0.0"
               source: "let serviceResponse = apim.getvariable('message.body');\n\n\
-                if (!serviceResponse.id) {\n    apim.error('Not Found', 404, 'Not\
-                \ Found', 'Lanzamiento no encontrado');\n}\n\nlet launch = {\n   \
-                \ nombre: serviceResponse.name,\n    ventana: serviceResponse.windowstart,\n\
+                error_decodigo();\n\nif (!serviceResponse.id) {\n    apim.error('Not\
+                \ Found', 404, 'Not Found', 'Lanzamiento no encontrado');\n}\n\nlet\
+                \ launch = {\n    nombre: serviceResponse.name,\n    ventana: serviceResponse.windowstart,\n\
                 \    estado: serviceResponse.status,\n};\n\napim.setvariable('launch',\
                 \ launch);\n\nif (serviceResponse.status === 1 || serviceResponse.status\
                 \ === 3) {\n    apim.setvariable('comprobarTiempo', true);\n}\n\n\
@@ -139,7 +139,46 @@ x-ibm-configuration:
                 \ response);\napim.output('application/json');\n"
         otherwise: []
         version: "1.0.0"
-    catch: []
+    catch:
+    - default:
+      - map:
+          title: "Error map"
+          inputs:
+            error:
+              schema:
+                type: "object"
+                properties:
+                  status:
+                    type: "object"
+                    name: "status"
+                    properties:
+                      code:
+                        type: "string"
+                        name: "code"
+                      reason:
+                        type: "string"
+                        name: "reason"
+              variable: "message"
+          outputs:
+            output:
+              schema:
+                type: "object"
+                properties:
+                  nombre:
+                    type: "string"
+                    name: "nombre"
+                  mensaje:
+                    type: "string"
+                    name: "mensaje"
+              variable: "message.body"
+              content: "application/json"
+          actions:
+          - set: "output.nombre"
+            from: "error.status.code"
+          - set: "output.mensaje"
+            from: "error.status.reason"
+          version: "1.0.0"
+          options: {}
   phase: "realized"
 paths:
   /:
